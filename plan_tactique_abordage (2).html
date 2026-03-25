@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Plan Tactique — Scène 9 : À l'Abordage</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Oswald:wght@400;600;700&display=swap');
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: #000;
+    color: #fff;
+    font-family: 'Oswald', sans-serif;
+    min-height: 100vh;
+    overflow: hidden;
+  }
+
+  header {
+    background: #000;
+    border-bottom: 3px solid #fff;
+    padding: 10px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .header-title {
+    font-family: 'Oswald', sans-serif;
+    font-size: 26px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    color: #fff;
+    text-transform: uppercase;
+  }
+
+  .header-sub {
+    font-size: 14px;
+    font-weight: 400;
+    color: #aaa;
+    letter-spacing: 2px;
+    margin-top: 2px;
+  }
+
+  .header-badge {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 12px;
+    color: #00ccff;
+    border: 2px solid #00ccff;
+    padding: 6px 14px;
+    letter-spacing: 3px;
+  }
+
+  .alert-bar {
+    display: flex;
+    background: #111;
+    border-bottom: 3px solid #333;
+  }
+
+  .alert-btn {
+    flex: 1;
+    padding: 14px 10px;
+    border: none;
+    border-right: 2px solid #333;
+    background: #111;
+    cursor: pointer;
+    font-family: 'Oswald', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: #555;
+    transition: all 0.15s;
+    display: flex; align-items: center; justify-content: center; gap: 12px;
+  }
+
+  .alert-btn:last-child { border-right: none; }
+
+  .alert-btn.active-green  { background: #001a0d; color: #00ff88; border-bottom: 4px solid #00ff88; }
+  .alert-btn.active-orange { background: #1a0a00; color: #ff8800; border-bottom: 4px solid #ff8800; }
+  .alert-btn.active-red    { background: #1a0008; color: #ff2244; border-bottom: 4px solid #ff2244; }
+
+  .dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
+  .dot-green  { background: #00ff88; }
+  .dot-orange { background: #ff8800; animation: blink 1.2s infinite; }
+  .dot-red    { background: #ff2244; animation: blink 0.7s infinite; }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.2} }
+
+  .main {
+    display: grid;
+    grid-template-columns: 1fr 300px;
+    height: calc(100vh - 112px);
+  }
+
+  .map-container {
+    position: relative;
+    overflow: hidden;
+    border-right: 3px solid #333;
+    background: #000;
+  }
+
+  canvas { display: block; width: 100%; height: 100%; }
+
+  .panel {
+    background: #0a0a0a;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+  }
+
+  .status-box {
+    padding: 14px 16px;
+    border: 2px solid;
+    margin: 14px;
+    font-size: 13px;
+    line-height: 1.7;
+  }
+  .status-green  { border-color: #00ff88; background: rgba(0,255,136,0.05); }
+  .status-orange { border-color: #ff8800; background: rgba(255,136,0,0.05); }
+  .status-red    { border-color: #ff2244; background: rgba(255,34,68,0.05); }
+
+  .status-title {
+    font-family: 'Oswald', sans-serif;
+    font-weight: 700;
+    font-size: 17px;
+    letter-spacing: 2px;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+  }
+  .status-green  .status-title { color: #00ff88; }
+  .status-orange .status-title { color: #ff8800; }
+  .status-red    .status-title { color: #ff2244; }
+
+  .panel-section { border-bottom: 2px solid #222; padding: 14px 16px; }
+
+  .panel-section-title {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 4px;
+    color: #555;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+
+  .enemy-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 7px 0;
+    border-bottom: 1px solid #1a1a1a;
+    font-size: 13px;
+    font-family: 'Oswald', sans-serif;
+    letter-spacing: 1px;
+  }
+  .enemy-name { color: #ddd; }
+  .enemy-count { font-family: 'Share Tech Mono', monospace; font-size: 13px; font-weight: 700; }
+  .danger  { color: #ff2244; }
+  .warning { color: #ff8800; }
+  .safe    { color: #00ff88; }
+  .neutral { color: #666; }
+
+  .legend-item {
+    display: flex; align-items: center; gap: 10px;
+    margin-bottom: 9px;
+    font-size: 13px;
+    font-family: 'Oswald', sans-serif;
+    letter-spacing: 1px;
+    color: #ccc;
+  }
+  .ld { width: 16px; height: 16px; border-radius: 50%; flex-shrink: 0; }
+  .ls { width: 16px; height: 16px; flex-shrink: 0; }
+
+  .phase-note {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    color: #666;
+    padding: 14px 16px;
+    line-height: 1.8;
+    white-space: pre-line;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <div class="header-title">⚓ À l'Abordage — Scène 9</div>
+    <div class="header-sub">QUAIS DE TARIS · PORT CLANDESTIN DE PUYALLUP</div>
+  </div>
+  <div class="header-badge">PLAN TACTIQUE</div>
+</header>
+
+<div class="alert-bar">
+  <button class="alert-btn active-green" id="btn-green" onclick="setMode('green')">
+    <span class="dot dot-green"></span>APPROCHE DISCRÈTE
+  </button>
+  <button class="alert-btn" id="btn-orange" onclick="setMode('orange')">
+    <span class="dot dot-orange"></span>ALERTE PARTIELLE
+  </button>
+  <button class="alert-btn" id="btn-red" onclick="setMode('red')">
+    <span class="dot dot-red"></span>ALERTE TOTALE
+  </button>
+</div>
+
+<div class="main">
+  <div class="map-container">
+    <canvas id="c"></canvas>
+  </div>
+  <div class="panel">
+    <div id="statusBox" class="status-box status-green">
+      <div class="status-title" id="statusTitle">SURPRISE TOTALE</div>
+      <div id="statusDesc"></div>
+    </div>
+    <div class="panel-section">
+      <div class="panel-section-title">— Effectifs ennemis —</div>
+      <div id="enemyRoster"></div>
+    </div>
+    <div class="panel-section">
+      <div class="panel-section-title">— Légende —</div>
+      <div class="legend-item"><div class="ld" style="background:#ff2244;box-shadow:0 0 8px #ff2244;"></div>GRIZZ (chef troll)</div>
+      <div class="legend-item"><div class="ld" style="background:#ff7700;box-shadow:0 0 6px #ff7700;"></div>SPIKE (bras droit)</div>
+      <div class="legend-item"><div class="ld" style="background:#cc2233;border:2px solid #ff4455;"></div>Garde actif</div>
+      <div class="legend-item"><div class="ld" style="background:#330011;border:2px dashed #882233;"></div>Garde neutralisé</div>
+      <div class="legend-item"><div class="ld" style="background:#330a10;border:2px solid #661020;"></div>Garde inactif (dortoir)</div>
+      <div style="height:6px"></div>
+      <div class="legend-item"><div class="ls" style="background:#001828;border:2px solid #3a6a88;"></div>Eau</div>
+      <div class="legend-item"><div class="ls" style="background:#1a2830;border:2px solid #4a6070;"></div>Passerelle</div>
+      <div class="legend-item"><span style="font-size:16px;width:16px;text-align:center;">🔥</span>Baril enflammé</div>
+      <div class="legend-item"><span style="font-size:16px;width:16px;text-align:center;">🎯</span>Objectif final</div>
+    </div>
+    <div class="phase-note" id="phaseNotes"></div>
+  </div>
+</div>
+
+<script>
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+let W, H, currentMode = 'green';
+
+function px(r) { return r * W; }
+function py(r) { return r * H; }
+
+function txt(t, x, y, size, color, align='center', bold=true) {
+  ctx.font = `${bold?'700':'400'} ${size}px "Oswald", sans-serif`;
+  ctx.textAlign = align;
+  ctx.fillStyle = color;
+  ctx.fillText(t, x, y);
+}
+
+function mono(t, x, y, size, color, align='center') {
+  ctx.font = `${size}px "Share Tech Mono", monospace`;
+  ctx.textAlign = align;
+  ctx.fillStyle = color;
+  ctx.fillText(t, x, y);
+}
+
+function labelBox(t, x, y, color, bg='rgba(0,0,0,0.82)', size=13) {
+  ctx.font = `700 ${size}px "Oswald", sans-serif`;
+  ctx.textAlign = 'center';
+  const tw = ctx.measureText(t).width;
+  ctx.fillStyle = bg;
+  ctx.fillRect(x - tw/2 - 6, y - size - 1, tw + 12, size + 6);
+  ctx.fillStyle = color;
+  ctx.fillText(t, x, y);
+}
+
+function arrow(x1, y1, x2, y2, color, lw=3) {
+  const dx=x2-x1, dy=y2-y1, len=Math.sqrt(dx*dx+dy*dy);
+  const ux=dx/len, uy=dy/len;
+  ctx.strokeStyle=color; ctx.lineWidth=lw; ctx.fillStyle=color;
+  ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(x2,y2);
+  ctx.lineTo(x2-ux*14-uy*7, y2-uy*14+ux*7);
+  ctx.lineTo(x2-ux*14+uy*7, y2-uy*14-ux*7);
+  ctx.closePath(); ctx.fill();
+}
+
+function dashedBox(x, y, w, h, color, lw=2) {
+  ctx.save(); ctx.setLineDash([6,4]);
+  ctx.strokeStyle=color; ctx.lineWidth=lw;
+  ctx.strokeRect(x,y,w,h);
+  ctx.restore();
+}
+
+// Guard token
+function guard(cx, cy, state, size=11) {
+  // state: 'active' | 'neutralized' | 'sleeping'
+  ctx.shadowBlur = 0;
+  if(state === 'neutralized') {
+    ctx.beginPath(); ctx.arc(cx,cy,size,0,Math.PI*2);
+    ctx.fillStyle='#330011'; ctx.fill();
+    ctx.setLineDash([3,3]);
+    ctx.strokeStyle='#882233'; ctx.lineWidth=2; ctx.stroke();
+    ctx.setLineDash([]);
+    const d=size*0.6;
+    ctx.strokeStyle='#cc3344'; ctx.lineWidth=2;
+    ctx.beginPath(); ctx.moveTo(cx-d,cy-d); ctx.lineTo(cx+d,cy+d); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(cx+d,cy-d); ctx.lineTo(cx-d,cy+d); ctx.stroke();
+  } else if(state === 'sleeping') {
+    ctx.beginPath(); ctx.arc(cx,cy,size,0,Math.PI*2);
+    ctx.fillStyle='#2a0808'; ctx.fill();
+    ctx.strokeStyle='#551010'; ctx.lineWidth=2; ctx.stroke();
+    mono('z', cx, cy+4, size*0.9, '#663322');
+  } else {
+    ctx.shadowColor='#ff2244'; ctx.shadowBlur=16;
+    ctx.beginPath(); ctx.arc(cx,cy,size,0,Math.PI*2);
+    ctx.fillStyle='#cc1122'; ctx.fill();
+    ctx.strokeStyle='#ff5566'; ctx.lineWidth=3; ctx.stroke();
+    ctx.shadowBlur=0;
+    ctx.beginPath(); ctx.arc(cx,cy,size*0.38,0,Math.PI*2);
+    ctx.fillStyle='#ffcccc'; ctx.fill();
+  }
+}
+
+// Named boss token
+function boss(cx, cy, color, glow, name, size=15) {
+  ctx.shadowColor=glow; ctx.shadowBlur=24;
+  ctx.beginPath(); ctx.arc(cx,cy,size+5,0,Math.PI*2);
+  ctx.strokeStyle=color+'44'; ctx.lineWidth=2; ctx.stroke();
+  ctx.beginPath(); ctx.arc(cx,cy,size,0,Math.PI*2);
+  ctx.fillStyle=color; ctx.fill();
+  ctx.strokeStyle='#ffffff'; ctx.lineWidth=3; ctx.stroke();
+  ctx.shadowBlur=0;
+  ctx.beginPath(); ctx.arc(cx,cy,size*0.42,0,Math.PI*2);
+  ctx.fillStyle='rgba(255,255,255,0.65)'; ctx.fill();
+  // label
+  ctx.shadowColor='#000'; ctx.shadowBlur=8;
+  txt(name, cx, cy-size-10, 15, '#ffffff');
+  ctx.shadowBlur=0;
+}
+
+// Fire arc
+function fireArc(cx, cy, r, a1, a2, color, alpha=0.20) {
+  ctx.save();
+  ctx.globalAlpha=alpha;
+  const g=ctx.createRadialGradient(cx,cy,0,cx,cy,r);
+  g.addColorStop(0,color); g.addColorStop(1,'transparent');
+  ctx.fillStyle=g;
+  ctx.beginPath(); ctx.moveTo(cx,cy); ctx.arc(cx,cy,r,a1,a2); ctx.closePath(); ctx.fill();
+  ctx.restore();
+  ctx.save(); ctx.globalAlpha=0.6;
+  ctx.strokeStyle=color; ctx.lineWidth=2; ctx.setLineDash([6,4]);
+  ctx.beginPath(); ctx.arc(cx,cy,r,a1,a2); ctx.stroke();
+  ctx.restore();
+}
+
+// ── PEARL : vue du dessus, forme suppositoire ──
+// proue (pointe) vers le bas, poupe (arrondie) vers le haut
+// navire vertical, amarré côté droit sur le quai
+function buildPearlPath(cx, cy, len, halfW) {
+  const proueY = cy + len*0.46;
+  const poupeY = cy - len*0.46;
+  ctx.beginPath();
+  ctx.moveTo(cx, proueY); // proue
+  ctx.bezierCurveTo(cx-halfW*0.65, proueY-len*0.12, cx-halfW, cy+len*0.1, cx-halfW*0.85, cy);
+  ctx.bezierCurveTo(cx-halfW, cy-len*0.1, cx-halfW*0.55, poupeY+len*0.05, cx-halfW*0.3, poupeY);
+  ctx.bezierCurveTo(cx-halfW*0.1, poupeY-len*0.06, cx+halfW*0.1, poupeY-len*0.06, cx+halfW*0.3, poupeY);
+  ctx.bezierCurveTo(cx+halfW*0.55, poupeY+len*0.05, cx+halfW, cy-len*0.1, cx+halfW*0.85, cy);
+  ctx.bezierCurveTo(cx+halfW, cy+len*0.1, cx+halfW*0.65, proueY-len*0.12, cx, proueY);
+  ctx.closePath();
+  return { proueY, poupeY };
+}
+
+function drawPearl(cx, cy, len, halfW) {
+  const { proueY, poupeY } = buildPearlPath(cx, cy, len, halfW);
+
+  // Coque
+  const hg = ctx.createLinearGradient(cx-halfW, cy, cx+halfW, cy);
+  hg.addColorStop(0, '#0a1a2c');
+  hg.addColorStop(0.5, '#1a3555');
+  hg.addColorStop(1, '#0a1a2c');
+  ctx.fillStyle=hg; ctx.fill();
+  ctx.strokeStyle='#55aadd'; ctx.lineWidth=4; ctx.stroke();
+
+  // ── Pont supérieur (zone poupe ~32% de la longueur) ──
+  const psY = poupeY + len*0.04;
+  const psH = len * 0.30;
+  const psW = halfW * 1.30;
+  ctx.fillStyle='#1e3a58';
+  ctx.fillRect(cx-psW/2, psY, psW, psH);
+  ctx.strokeStyle='#4488bb'; ctx.lineWidth=3;
+  ctx.strokeRect(cx-psW/2, psY, psW, psH);
+  labelBox('PONT SUPÉRIEUR', cx, psY+psH*0.52+7, '#aaddff', 'rgba(0,0,0,0.7)', 13);
+
+  // Timonerie (droite du pont sup)
+  const tW=psW*0.44, tH=psH*0.56;
+  const tX=cx+psW*0.04, tY=psY+psH*0.22;
+  ctx.fillStyle='#2a4a6a';
+  ctx.fillRect(tX,tY,tW,tH);
+  ctx.strokeStyle='#66aacc'; ctx.lineWidth=2; ctx.strokeRect(tX,tY,tW,tH);
+  // fenêtres
+  ctx.fillStyle='#55bbdd44';
+  for(let i=0;i<3;i++) ctx.fillRect(tX+4+i*(tW/3-3),tY+5,tW/3-7,tH*0.28);
+  labelBox('TIMON.', tX+tW/2, tY+tH*0.72+6, '#88ccee', 'rgba(0,0,0,0.6)', 11);
+
+  // ── Pont principal (zone centrale ~28%) ──
+  const ppY = psY + psH + len*0.01;
+  const ppH = len * 0.27;
+  const ppW = halfW * 1.45;
+  ctx.fillStyle='#162838';
+  ctx.fillRect(cx-ppW/2, ppY, ppW, ppH);
+  ctx.strokeStyle='#336688'; ctx.lineWidth=3;
+  ctx.strokeRect(cx-ppW/2, ppY, ppW, ppH);
+  labelBox('PONT PRINCIPAL', cx, ppY+ppH*0.52+7, '#7799aa', 'rgba(0,0,0,0.7)', 13);
+
+  // Cabines
+  const cbW=ppW*0.18, cbH=ppH*0.38;
+  for(let i=0;i<4;i++){
+    const bx=cx-ppW/2+6+i*(cbW+5);
+    ctx.fillStyle='#1e3448'; ctx.fillRect(bx,ppY+5,cbW,cbH);
+    ctx.strokeStyle='#2a4a60'; ctx.lineWidth=1; ctx.strokeRect(bx,ppY+5,cbW,cbH);
+  }
+
+  // ── Cale (zone proue ~26%) ──
+  const caY = ppY + ppH + len*0.01;
+  const caH = len * 0.24;
+  const caW = halfW * 1.20;
+  ctx.fillStyle='#0e1e2c';
+  ctx.fillRect(cx-caW/2, caY, caW, caH);
+  ctx.strokeStyle='#1e3855'; ctx.lineWidth=3;
+  ctx.strokeRect(cx-caW/2, caY, caW, caH);
+  // trappe
+  const hW=caW*0.58, hH=caH*0.55;
+  ctx.fillStyle='#081018';
+  ctx.fillRect(cx-hW/2, caY+caH*0.22, hW, hH);
+  ctx.save(); ctx.setLineDash([5,5]);
+  ctx.strokeStyle='#2a5577'; ctx.lineWidth=2;
+  ctx.strokeRect(cx-hW/2, caY+caH*0.22, hW, hH);
+  ctx.restore();
+  labelBox('CALE', cx, caY+caH*0.58+7, '#557799', 'rgba(0,0,0,0.7)', 14);
+
+  // ── Titre ──
+  ctx.shadowColor='#44aaff'; ctx.shadowBlur=22;
+  txt('LE PEARL', cx, poupeY-32, 22, '#ffffff');
+  ctx.shadowBlur=0;
+  mono('CHALUTIER · 40M', cx, poupeY-14, 11, '#4488aa');
+
+  return { proueY, poupeY, psY, psH, psW, ppY, ppH, ppW, caY, caH, caW, tX, tY, tW, tH, halfW };
+}
+
+// ════════════════════════════════════════════════
+// DRAW
+// ════════════════════════════════════════════════
+function draw() {
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle='#000'; ctx.fillRect(0,0,W,H);
+
+  // grid
+  ctx.strokeStyle='#0e0e0e'; ctx.lineWidth=1;
+  const gs=Math.round(W/28);
+  for(let x=0;x<W;x+=gs){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();}
+  for(let y=0;y<H;y+=gs){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
+
+  // ── Water (left ~36%) ──
+  const wW = px(0.38);
+  const wGrad = ctx.createLinearGradient(0,0,wW,0);
+  wGrad.addColorStop(0,'#001020');
+  wGrad.addColorStop(0.7,'#002040');
+  wGrad.addColorStop(1,'#001828');
+  ctx.fillStyle=wGrad; ctx.fillRect(0,0,wW,H);
+  ctx.strokeStyle='#004466'; ctx.lineWidth=1;
+  for(let y=20;y<H;y+=20){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(wW,y);ctx.stroke();}
+  // Puget Sound label + vagues
+  ctx.save();
+  ctx.font = '700 16px "Oswald", sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillStyle = '#0077bb';
+  ctx.fillText('PUGET SOUND', wW*0.42, py(0.18));
+  ctx.font = '11px "Share Tech Mono", monospace';
+  ctx.fillStyle = '#005588';
+  ctx.fillText('BAIE DE SEATTLE', wW*0.42, py(0.25));
+  // vagues stylisées
+  ctx.strokeStyle = '#003355'; ctx.lineWidth = 2;
+  for(let wy=py(0.33); wy<py(0.84); wy+=py(0.075)) {
+    ctx.beginPath();
+    for(let wx=wW*0.06; wx<wW*0.90; wx+=20) {
+      ctx.arc(wx+10, wy, 10, Math.PI, 0);
+    }
+    ctx.stroke();
+  }
+  ctx.restore();
+
+  // ── Quai béton ──
+  const qX=px(0.27), qW=px(0.71), qY=py(0.06), qH=py(0.86);
+  ctx.fillStyle='#161616'; ctx.fillRect(qX,qY,qW,qH);
+  ctx.strokeStyle='#444'; ctx.lineWidth=3; ctx.strokeRect(qX,qY,qW,qH);
+  const gq=px(0.042);
+  ctx.strokeStyle='#1e1e1e'; ctx.lineWidth=1;
+  for(let x=qX;x<qX+qW;x+=gq){ctx.beginPath();ctx.moveTo(x,qY);ctx.lineTo(x,qY+qH);ctx.stroke();}
+  for(let y=qY;y<qY+qH;y+=gq){ctx.beginPath();ctx.moveTo(qX,y);ctx.lineTo(qX+qW,y);ctx.stroke();}
+
+  // ── CONTENEURS (haut droite) ──
+  const cSX=px(0.54), cSY=py(0.09), cW=px(0.038), cH=py(0.055);
+  const cCols=4, cRows=3;
+  for(let r=0;r<cRows;r++) for(let c=0;c<cCols;c++) {
+    const bx=cSX+c*(cW+5), by=cSY+r*(cH+5);
+    ctx.fillStyle=['#182030','#16202c','#1c2838','#141e2c'][(r+c)%4];
+    ctx.fillRect(bx,by,cW,cH);
+    ctx.strokeStyle='#3a4a5c'; ctx.lineWidth=2; ctx.strokeRect(bx,by,cW,cH);
+    ctx.strokeStyle='#2a3a4c'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(bx+cW/2,by); ctx.lineTo(bx+cW/2,by+cH); ctx.stroke();
+  }
+  labelBox('CONTENEURS', cSX+cCols*(cW+5)/2-2, cSY-12, '#4466aa', 'rgba(0,0,0,0)', 14);
+
+  // ── BÂTIMENTS ──
+  const bats = [
+    { x:px(0.57), y:py(0.50), w:px(0.13), h:py(0.18), n:'BÂTIMENT A' },
+    { x:px(0.76), y:py(0.50), w:px(0.11), h:py(0.18), n:'BÂTIMENT B' },
+  ];
+  bats.forEach(b => {
+    ctx.fillStyle='#141414'; ctx.fillRect(b.x,b.y,b.w,b.h);
+    ctx.strokeStyle='#3a3a3a'; ctx.lineWidth=3; ctx.strokeRect(b.x,b.y,b.w,b.h);
+    ctx.fillStyle='#1e2a30'; ctx.fillRect(b.x+6,b.y+6,b.w-12,b.h*0.25);
+    ctx.fillRect(b.x+6,b.y+b.h*0.6,b.w-12,b.h*0.25);
+    labelBox(b.n, b.x+b.w/2, b.y+b.h/2+7, '#888', 'rgba(0,0,0,0.7)', 13);
+  });
+
+  // ── GRUE ──
+  ctx.strokeStyle='#3a3a3a'; ctx.lineWidth=5;
+  const gX=px(0.88), gY=py(0.11);
+  ctx.beginPath(); ctx.moveTo(gX,gY+py(0.33)); ctx.lineTo(gX,gY); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(gX,gY); ctx.lineTo(gX+px(0.06),gY+py(0.14)); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(gX,gY+py(0.04)); ctx.lineTo(gX-px(0.025),gY+py(0.14)); ctx.stroke();
+  ctx.setLineDash([3,3]); ctx.strokeStyle='#2a2a2a'; ctx.lineWidth=2;
+  ctx.beginPath(); ctx.moveTo(gX+px(0.04),gY+py(0.12)); ctx.lineTo(gX+px(0.04),gY+py(0.28)); ctx.stroke();
+  ctx.setLineDash([]);
+
+  // ── PEARL ──
+  const pCX=px(0.155), pCY=py(0.50);
+  const pLen=py(0.78), pHalfW=px(0.115);
+  const z = drawPearl(pCX, pCY, pLen, pHalfW);
+
+  // ── AMARRES ──
+  ctx.strokeStyle='#3a5830'; ctx.lineWidth=3;
+  for(const my of [z.poupeY+py(0.04), z.proueY-py(0.04)]) {
+    ctx.beginPath(); ctx.moveTo(pCX+pHalfW,my); ctx.lineTo(px(0.285),my); ctx.stroke();
+    ctx.beginPath(); ctx.arc(px(0.285),my,6,0,Math.PI*2);
+    ctx.fillStyle='#2a4030'; ctx.fill();
+    ctx.strokeStyle='#4a6840'; ctx.lineWidth=2; ctx.stroke();
+  }
+
+  // ── PASSERELLE (jetée) ──
+  const jX=px(0.283), jY=py(0.43), jW=px(0.065), jH=py(0.14);
+  ctx.fillStyle='#1e2830'; ctx.fillRect(jX,jY,jW,jH);
+  ctx.strokeStyle='#5588aa'; ctx.lineWidth=3; ctx.strokeRect(jX,jY,jW,jH);
+  for(let y=jY+10;y<jY+jH;y+=10){
+    ctx.strokeStyle='#2a3a48'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(jX,y); ctx.lineTo(jX+jW,y); ctx.stroke();
+  }
+  labelBox('PASSERELLE', jX+jW/2, jY+jH+20, '#88aacc', 'rgba(0,0,0,0.75)', 13);
+
+  // ── BARILS ──
+  const barils=[{x:px(0.38),y:py(0.41)},{x:px(0.40),y:py(0.47)},{x:px(0.38),y:py(0.53)}];
+  barils.forEach(b => {
+    ctx.shadowColor='#ff6600'; ctx.shadowBlur=18;
+    ctx.beginPath(); ctx.arc(b.x,b.y,9,0,Math.PI*2);
+    ctx.fillStyle='#2a1000'; ctx.fill();
+    ctx.strokeStyle='#ff6600'; ctx.lineWidth=2; ctx.stroke();
+    ctx.shadowBlur=0;
+    ctx.font='14px serif'; ctx.textAlign='center';
+    ctx.fillText('🔥',b.x,b.y+5);
+  });
+
+  // NORTH indicator
+  txt('N', px(0.975), py(0.055), 18, '#555');
+  txt('↑', px(0.975), py(0.035), 14, '#444');
+
+  // SCALE BAR
+  const sbX=px(0.03), sbY=py(0.94);
+  ctx.strokeStyle='#444'; ctx.lineWidth=2;
+  ctx.beginPath(); ctx.moveTo(sbX,sbY); ctx.lineTo(sbX+pLen*0.53,sbY); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(sbX,sbY-6); ctx.lineTo(sbX,sbY+6); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(sbX+pLen*0.53,sbY-6); ctx.lineTo(sbX+pLen*0.53,sbY+6); ctx.stroke();
+  mono('≈ 40 m', sbX+pLen*0.53/2, sbY+15, 12, '#555');
+
+  // ── MODE OVERLAY ──
+  if(currentMode==='green')  drawGreen(z, pCX, jX, jY, jW, jH, barils, bats);
+  if(currentMode==='orange') drawOrange(z, pCX, jX, jY, jW, jH, barils, bats);
+  if(currentMode==='red')    drawRed(z, pCX, jX, jY, jW, jH, barils, bats);
+}
+
+// ════ GREEN ════
+function drawGreen(z, cx, jX, jY, jW, jH, barils, bats) {
+  // Extérieurs actifs — à leur poste, non alertés
+  guard(cx-z.psW*0.25, z.psY+z.psH*0.28, 'active', 11);
+  guard(cx+z.psW*0.25, z.psY+z.psH*0.28, 'active', 11);
+  guard(z.tX+z.tW*0.5, z.tY+z.tH*0.5, 'active', 10);
+  barils.forEach(b => guard(b.x-16, b.y, 'active', 10));
+
+  // Intérieurs endormis
+  const ppy=z.ppY, pph=z.ppH, ppw=z.ppW;
+  guard(cx-ppw*0.30, ppy+pph*0.72, 'sleeping', 10);
+  guard(cx-ppw*0.10, ppy+pph*0.72, 'sleeping', 10);
+  guard(cx+ppw*0.10, ppy+pph*0.72, 'sleeping', 10);
+  guard(cx+ppw*0.30, ppy+pph*0.72, 'sleeping', 10);
+  guard(cx+ppw*0.00, ppy+pph*0.40, 'sleeping', 10);
+  guard(px(0.61),py(0.56), 'sleeping', 9);
+  guard(px(0.64),py(0.63), 'sleeping', 9);
+  guard(px(0.79),py(0.56), 'sleeping', 9);
+
+  // GRIZZ + SPIKE dans la cale
+  boss(cx-z.caW*0.20, z.caY+z.caH*0.45, '#ff2244', '#ff2244', 'GRIZZ', 15);
+  boss(cx+z.caW*0.20, z.caY+z.caH*0.45, '#ff7700', '#ff7700', 'SPIKE', 13);
+
+  // Objectif
+  ctx.strokeStyle='#00ff88'; ctx.lineWidth=3; ctx.setLineDash([7,5]);
+  ctx.strokeRect(cx-z.caW/2-8, z.caY-6, z.caW+16, z.caH+12);
+  ctx.setLineDash([]);
+  labelBox('🎯 OBJECTIF FINAL', cx, z.caY+z.caH+24, '#00ff88', 'rgba(0,0,0,0.85)', 14);
+}
+
+// ════ ORANGE ════
+function drawOrange(z, cx, jX, jY, jW, jH, barils, bats) {
+  // Extérieurs actifs
+  guard(cx-z.psW*0.25, z.psY+z.psH*0.28, 'active', 12);
+  guard(cx+z.psW*0.25, z.psY+z.psH*0.28, 'active', 12);
+  guard(z.tX+z.tW*0.5, z.tY+z.tH*0.5, 'active', 11);
+  barils.forEach(b => guard(b.x-16, b.y, 'active', 11));
+
+  // Dortoirs se réveillent
+  const ppy=z.ppY, pph=z.ppH, ppw=z.ppW;
+  guard(cx-ppw*0.30, ppy+pph*0.72, 'active', 10);
+  guard(cx-ppw*0.10, ppy+pph*0.72, 'active', 10);
+  guard(cx+ppw*0.10, ppy+pph*0.72, 'active', 10);
+  guard(cx+ppw*0.30, ppy+pph*0.72, 'active', 10);
+  guard(cx+ppw*0.00, ppy+pph*0.40, 'active', 10);
+
+  // Bâtiments convergent
+  guard(px(0.61),py(0.55),'active',11);
+  guard(px(0.65),py(0.62),'active',11);
+  guard(px(0.79),py(0.55),'active',11);
+  guard(px(0.83),py(0.62),'active',11);
+  arrow(px(0.63),py(0.60),jX+jW,jY+jH*0.65,'#ff880099',3);
+  arrow(px(0.80),py(0.60),jX+jW+px(0.01),jY+jH,'#ff880099',3);
+
+  // Patrouilles
+  guard(px(0.44),py(0.73),'active',11);
+  guard(px(0.51),py(0.79),'active',11);
+  guard(px(0.58),py(0.75),'active',11);
+  arrow(px(0.44),py(0.75),px(0.40),py(0.69),'#ff880066',3);
+
+  // GRIZZ remonte
+  boss(cx+z.ppW*0.14, z.ppY+z.ppH*0.35, '#ff2244','#ff2244','GRIZZ',15);
+  boss(cx-z.ppW*0.14, z.ppY+z.ppH*0.35, '#ff7700','#ff7700','SPIKE',13);
+
+  // Arc de feu timonerie
+  fireArc(z.tX+z.tW/2, z.tY+z.tH, py(0.26), Math.PI*0.5, Math.PI*1.5, '#ff5500', 0.22);
+  labelBox('ARC DE TIR', z.tX+z.tW/2, z.tY+z.tH+py(0.17), '#ff6600','rgba(0,0,0,0.8)',13);
+
+  ctx.font='18px serif'; ctx.textAlign='center';
+  ctx.fillText('📡', z.tX+z.tW*0.5, z.tY-10);
+  labelBox('! ALERTE RADIO', z.tX+z.tW*0.5, z.tY-26,'#ff8800','rgba(0,0,0,0.8)',13);
+}
+
+// ════ RED ════
+function drawRed(z, cx, jX, jY, jW, jH, barils, bats) {
+  // BARRICADE
+  ctx.fillStyle='rgba(255,34,68,0.12)';
+  ctx.fillRect(jX-10,jY-10,jW+20,jH+20);
+  ctx.strokeStyle='#ff2244'; ctx.lineWidth=4; ctx.setLineDash([5,4]);
+  ctx.strokeRect(jX-10,jY-10,jW+20,jH+20);
+  ctx.setLineDash([]);
+  labelBox('⛔ BARRICADE', jX+jW/2, jY-24, '#ff2244','rgba(0,0,0,0.9)',14);
+
+  // Trolls passerelle
+  boss(jX+jW*0.25, jY+jH*0.46,'#cc1133','#ff2244','TROLL',13);
+  boss(jX+jW*0.75, jY+jH*0.46,'#cc1133','#ff2244','TROLL',13);
+
+  // Skar + tireurs
+  boss(z.tX+z.tW*0.5, z.tY+z.tH*0.5,'#cc1133','#ff2244','SKAR',12);
+  guard(cx-z.psW*0.32, z.psY+z.psH*0.28,'active',13);
+  guard(cx+z.psW*0.32, z.psY+z.psH*0.28,'active',13);
+
+  // Arc de feu total pont sup
+  fireArc(cx, z.psY, py(0.34), Math.PI*0.65, Math.PI*2.35, '#ff0000', 0.17);
+  labelBox('ZONE DE TIR', cx, z.psY+py(0.25),'#ff4444','rgba(0,0,0,0.75)',13);
+
+  // Gardes jetée
+  barils.forEach(b => guard(b.x-18, b.y,'active',12));
+  guard(px(0.42),py(0.60),'active',11);
+
+  // Flancs
+  guard(px(0.60),py(0.54),'active',12);
+  guard(px(0.64),py(0.60),'active',12);
+  guard(px(0.78),py(0.54),'active',12);
+  guard(px(0.83),py(0.60),'active',12);
+  fireArc(px(0.61),py(0.49),px(0.13),Math.PI*1.05,Math.PI*1.95,'#ff4400',0.15);
+  fireArc(px(0.79),py(0.49),px(0.11),Math.PI*1.05,Math.PI*1.95,'#ff4400',0.15);
+
+  // Dortoirs tous actifs
+  const ppy=z.ppY, pph=z.ppH, ppw=z.ppW;
+  for(let i=0;i<5;i++) guard(cx-ppw*0.38+i*ppw*0.19, ppy+pph*0.68,'active',11);
+
+  // Encerclement
+  guard(px(0.37),py(0.77),'active',11);
+  guard(px(0.46),py(0.83),'active',11);
+  guard(px(0.55),py(0.81),'active',11);
+  ctx.setLineDash([6,5]);
+  ctx.strokeStyle='#ff224466'; ctx.lineWidth=3;
+  ctx.beginPath(); ctx.arc(px(0.41),py(0.57),px(0.10),Math.PI*0.6,Math.PI*2.4); ctx.stroke();
+  ctx.setLineDash([]);
+
+  // GRIZZ accès tribord, SPIKE pont principal
+  boss(cx+z.halfW+px(0.025), z.ppY+z.ppH*0.12,'#ff2244','#ff2244','GRIZZ',16);
+  boss(cx-z.ppW*0.18, z.ppY+z.ppH*0.58,'#ff7700','#ff7700','SPIKE',14);
+
+  // Renforts
+  ctx.strokeStyle='#ff2244bb'; ctx.lineWidth=3; ctx.setLineDash([8,6]);
+  ctx.beginPath(); ctx.moveTo(W,py(0.47)); ctx.lineTo(px(0.93),py(0.47)); ctx.stroke();
+  ctx.setLineDash([]);
+  arrow(W,py(0.47),px(0.91),py(0.47),'#ff2244aa',4);
+  labelBox('RENFORTS +12',W-px(0.04),py(0.42),'#ff2244','rgba(0,0,0,0.9)',14);
+  labelBox('⚡ ROUND 11',W-px(0.04),py(0.55),'#ff4444','rgba(0,0,0,0.9)',13);
+
+  // Alerte totale
+  ctx.font='22px serif'; ctx.textAlign='center';
+  ctx.fillText('⚠️',cx,py(0.04));
+  labelBox('ALERTE MAXIMALE',cx,py(0.07),'#ff2244','rgba(0,0,0,0.9)',16);
+}
+
+// ════ DATA ════
+const SCENES = {
+  green: {
+    alertLabel:'SURPRISE TOTALE',
+    status:'Approche furtive réussie. Gardes extérieurs neutralisés silencieusement. Les ennemis intérieurs dorment. Les PJ bénéficient d\'un round de surprise complet.',
+    enemies:[
+      {name:'Gardes pont supérieur',count:2,state:'safe',note:'Neutralisés'},
+      {name:'Timonerie (guetteur)',count:1,state:'safe',note:'Neutralisé'},
+      {name:'Jetée (joueurs de cartes)',count:3,state:'safe',note:'Neutralisés'},
+      {name:'Gardes intérieurs',count:12,state:'neutral',note:'Endormis'},
+      {name:'GRIZZ + SPIKE',count:2,state:'danger',note:'Cale du Pearl'},
+    ],
+    phases:'► ROUND 1 : Les PJ agissent en premier (surprise).\n► Accès au Pearl sans résistance initiale.\n► Gardes intérieurs : réveil au round 2.\n► GRIZZ & SPIKE : dernier stand dans la cale.\n► Objectif : préserver la coque (substrat IA).'
+  },
+  orange: {
+    alertLabel:'ALERTE PARTIELLE',
+    status:'Détection partielle. Gardes extérieurs en alerte. Les intérieurs s\'équipent mais ignorent la position des PJ. GRIZZ remonte de la cale.',
+    enemies:[
+      {name:'Gardes pont supérieur',count:2,state:'warning',note:'En position'},
+      {name:'Timonerie — Skar',count:1,state:'warning',note:'Coordonne par radio'},
+      {name:'Jetée (défense)',count:3,state:'warning',note:'Derrière les barils'},
+      {name:'Bâtiments port',count:4,state:'warning',note:'Convergent'},
+      {name:'Dortoirs (réveillés)',count:5,state:'warning',note:'Round 2'},
+      {name:'Patrouilles quais',count:3,state:'warning',note:'Encerclent'},
+      {name:'GRIZZ + SPIKE',count:2,state:'danger',note:'Pont principal'},
+    ],
+    phases:'► ROUND 3 : Appel renforts (+12, arrivée Round 13).\n► ROUND 5 : Risque dégâts coque — EVE alerte.\n► GRIZZ et SPIKE : pont principal.\n► Arc de tir actif depuis la timonerie (Skar).'
+  },
+  red: {
+    alertLabel:'ALERTE MAXIMALE',
+    status:'Approche bruyante. Tous les Rusty Nails en position défensive. Trolls à la passerelle. Skar coordonne depuis la timonerie. Renforts en route.',
+    enemies:[
+      {name:'Pont sup. — Skar + tireurs',count:3,state:'danger',note:'Meilleurs tireurs'},
+      {name:'Passerelle — Trolls',count:2,state:'danger',note:'Bloquent l\'accès'},
+      {name:'Jetée (barricade)',count:4,state:'warning',note:'Barils + caisses'},
+      {name:'Bâtiments — flancs',count:4,state:'warning',note:'Feu de flanc'},
+      {name:'Dortoirs (tous actifs)',count:5,state:'warning',note:'Renforts internes'},
+      {name:'Patrouilles (encercl.)',count:3,state:'warning',note:'Coupent retraite'},
+      {name:'GRIZZ',count:1,state:'danger',note:'Accès tribord'},
+      {name:'SPIKE',count:1,state:'danger',note:'Pont principal'},
+    ],
+    phases:'► ROUND 1 : Tir immédiat, tous actifs.\n► Passerelle : seuil 3 pour forcer les trolls.\n► ROUND 3 : Renforts en route (arrivée Round 11).\n► Mort de GRIZZ → jet Volonté seuil 4 ou fuite.\n► Zone de tir totale depuis pont supérieur.'
+  }
+};
+
+function setMode(mode) {
+  currentMode=mode;
+  ['green','orange','red'].forEach(m=>{
+    document.getElementById('btn-'+m).className='alert-btn'+(m===mode?' active-'+m:'');
+  });
+  const sc=SCENES[mode];
+  document.getElementById('statusBox').className='status-box status-'+mode;
+  document.getElementById('statusTitle').textContent=sc.alertLabel;
+  document.getElementById('statusDesc').textContent=sc.status;
+  const r=document.getElementById('enemyRoster'); r.innerHTML='';
+  sc.enemies.forEach(e=>{
+    const cls=e.state==='danger'?'danger':e.state==='warning'?'warning':e.state==='safe'?'safe':'neutral';
+    r.innerHTML+=`<div class="enemy-row"><span class="enemy-name">${e.name}</span><span class="enemy-count ${cls}" title="${e.note}">${e.count}</span></div>`;
+  });
+  document.getElementById('phaseNotes').textContent=sc.phases;
+  draw();
+}
+
+function resize() {
+  const c=canvas.parentElement;
+  W=c.clientWidth; H=c.clientHeight;
+  canvas.width=W; canvas.height=H;
+  draw();
+}
+
+window.addEventListener('resize',resize);
+resize();
+setMode('green');
+</script>
+</body>
+</html>
